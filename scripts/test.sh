@@ -1,21 +1,26 @@
 #!/bin/bash
+
 export BUILDKIT_HOST=unix:///var/run/buildkit/buildkitd.sock
-export APP_DIR="../railway-tests/rltest1"
-export APP_REPO="https://github.com/laurci/rltest1.git"
 
-export NEXT_PUBLIC_THING="abcd"
+APP_REPO="https://github.com/laurci/rltest1.git"
+OUTPUT_IMAGE="ghcr.io/laurci/lttle-test:latest"
 
+# The GIT_AUTH_TOKEN is also used to authenticate the git clone operation (must be available in the ambient build environment)
 export GIT_AUTH_TOKEN=$(cat .env | grep GIT_AUTH_TOKEN | cut -d '=' -f 2)``
-export REPORT_BASE_URL=$(cat .env | grep REPORT_BASE_URL | cut -d '=' -f 2)
-export REPORT_AUTH_TOKEN=$(cat .env | grep REPORT_AUTH_TOKEN | cut -d '=' -f 2)
+REPORT_BASE_URL=$(cat .env | grep REPORT_BASE_URL | cut -d '=' -f 2)
+REPORT_AUTH_TOKEN=$(cat .env | grep REPORT_AUTH_TOKEN | cut -d '=' -f 2)
 
 echo "GIT_AUTH_TOKEN: $GIT_AUTH_TOKEN"
 echo "REPORT_BASE_URL: $REPORT_BASE_URL"
 echo "REPORT_AUTH_TOKEN: $REPORT_AUTH_TOKEN"
 
+# ENV vars must be available in the ambient build environment
+export NEXT_PUBLIC_THING="abcd"
+
 buildctl build \
-  --opt context=https://github.com/laurci/rltest1.git \
+  --progress=plain \
   --frontend=gateway.v0 \
+  --opt context=$APP_REPO \
   --opt source=ghcr.io/lttle-cloud/buildkit-frontend:latest \
   --opt report-build-id=1234567890 \
   --opt report-base-url=$REPORT_BASE_URL \
@@ -24,10 +29,11 @@ buildctl build \
   --opt env-names=NEXT_PUBLIC_THING \
   --secret id=NEXT_PUBLIC_THING,env=NEXT_PUBLIC_THING \
   --secret id=GIT_AUTH_TOKEN,env=GIT_AUTH_TOKEN \
-  --output type=image,name=ghcr.io/laurci/lttle-test:latest
+  --output type=image,name=$OUTPUT_IMAGE
 
 echo "Successfully built image from git repo"
 
+# APP_DIR="../railway-tests/rltest1"
 # buildctl build \
 #   --local context=$APP_DIR \
 #   --local dockerfile=$APP_DIR \
