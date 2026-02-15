@@ -82,4 +82,4 @@ require (
 )
 
 // replace github.com/railwayapp/railpack => ../railpack
-replace github.com/railwayapp/railpack => github.com/lttle-cloud/railpack v0.0.0-20251025195346-e3447c85f985
+replace github.com/railwayapp/railpack => github.com/lttle-cloud/railpack v0.0.0-20260215215524-2dac02c39045

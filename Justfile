@@ -1,13 +1,23 @@
 # version tag
 VERSION := "latest"
+REGISTRY_DEV := "europe-docker.pkg.dev/azin-dev/builder"
+
 
 build-frontend-image:
-    docker build -f Dockerfile.frontend -t ghcr.io/lttle-cloud/buildkit-frontend:{{VERSION}} . --push
+    docker build --platform linux/amd64 --provenance=false -f Dockerfile.frontend -t {{REGISTRY_DEV}}/buildkit-frontend:{{VERSION}} . --push
 
 build-analyzer:
     go build -o ./target/analyzer analyzer/main.go
 
 build-analyzer-image:
-    docker build -f Dockerfile.analyzer -t ghcr.io/lttle-cloud/buildkit-analyzer:{{VERSION}} . --push
+    docker build --platform linux/amd64 --provenance=false -f Dockerfile.analyzer -t {{REGISTRY_DEV}}/buildkit-analyzer:{{VERSION}} . --push
+
+update-buildkit:
+    crane copy 
+    docker pull --platform linux/amd64 moby/buildkit:v0.25.1-rootless
+    docker tag moby/buildkit:v0.25.1-rootless {{REGISTRY_DEV}}/buildkit:v0.25.1-rootless
+    docker push --provenance=false {{REGISTRY_DEV}}/buildkit:v0.25.1-rootless
 
 build-images: build-frontend-image build-analyzer-image
+
+update-all-images: build-images update-buildkit

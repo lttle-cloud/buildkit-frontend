@@ -17,16 +17,13 @@ import (
 )
 
 const (
-	DEFAULT_ANALYZER_IMAGE_VERSION          = "latest"
-	DEFAULT_RAILPACK_FRONTEND_IMAGE_VERSION = "latest"
-
-	ANALYZER_IMAGE          = "ghcr.io/lttle-cloud/buildkit-analyzer"
-	RAILPACK_FRONTEND_IMAGE = "ghcr.io/lttle-cloud/railpack-frontend"
+	DEFAULT_RAILPACK_FRONTEND_IMAGE = "europe-docker.pkg.dev/azin-dev/builder/railpack-frontend:latest"
+	DEFAULT_ANALYZER_IMAGE          = "europe-docker.pkg.dev/azin-dev/builder/buildkit-analyzer:latest"
 )
 
 const (
-	analyzerVersionKey         = "analyzer-version"
-	railpackFrontendVersionKey = "railpack-frontend-version"
+	analyzerImageKey         = "analyzer-image"
+	railpackFrontendImageKey = "railpack-frontend-image"
 
 	contextKey   = "context"
 	gitRefKey    = "git-ref"
@@ -142,17 +139,15 @@ func Build(ctx context.Context, c client.Client) (*client.Result, error) {
 		}
 	}
 
-	analyzerImageVersion := DEFAULT_ANALYZER_IMAGE_VERSION
-	if analyzerImageVersionOpt, ok := opts[analyzerVersionKey]; ok {
-		analyzerImageVersion = analyzerImageVersionOpt
+	analyzerImage := DEFAULT_ANALYZER_IMAGE
+	if analyzerImageOpt, ok := opts[analyzerImageKey]; ok {
+		analyzerImage = analyzerImageOpt
 	}
-	analyzerImage := fmt.Sprintf("%s:%s", ANALYZER_IMAGE, analyzerImageVersion)
 
-	railpackFrontendImageVersion := DEFAULT_RAILPACK_FRONTEND_IMAGE_VERSION
-	if railpackFrontendImageVersionOpt, ok := opts[railpackFrontendVersionKey]; ok {
-		railpackFrontendImageVersion = railpackFrontendImageVersionOpt
+	railpackFrontendImage := DEFAULT_RAILPACK_FRONTEND_IMAGE
+	if railpackFrontendImageOpt, ok := opts[railpackFrontendImageKey]; ok {
+		railpackFrontendImage = railpackFrontendImageOpt
 	}
-	railpackFrontendImage := fmt.Sprintf("%s:%s", RAILPACK_FRONTEND_IMAGE, railpackFrontendImageVersion)
 
 	git := llb.Git(gitRepoUrl, gitRef, llb.KeepGitDir(), llb.GitSubDir(gitSubdir))
 
