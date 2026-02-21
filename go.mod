@@ -79,7 +79,8 @@ require (
 	google.golang.org/protobuf v1.36.9 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	mvdan.cc/sh/v3 v3.12.0 // indirect
 )
 
 // replace github.com/railwayapp/railpack => ../railpack
-replace github.com/railwayapp/railpack => github.com/lttle-cloud/railpack v0.0.0-20260215215524-2dac02c39045
+replace github.com/railwayapp/railpack => github.com/lttle-cloud/railpack v0.0.0-20260221115325-0e679c51e9e1
