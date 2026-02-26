@@ -188,25 +188,44 @@ func Build(ctx context.Context, c client.Client) (*client.Result, error) {
 
 	reportClient := api.NewReportClient(reportBaseUrl, reportAuthToken)
 
+	// Run the analyzer and read its output
+	analyzerRes, analyzerErr := c.Solve(ctx, client.SolveRequest{Definition: dfDef.ToPB()})
+
 	if reportClient.IsConfigured() && reportBuildId != "" {
-		res, _ := c.Solve(ctx, client.SolveRequest{Definition: dfDef.ToPB()})
-		ref, _ := res.SingleRef()
+		buildInfoString := ""
+		buildPlanString := ""
 
-		buildInfo, _ := ref.ReadFile(ctx, client.ReadRequest{
-			Filename: "railpack-info.json",
-		})
-		buildInfoString := string(buildInfo)
+		if analyzerErr == nil && analyzerRes != nil {
+			ref, refErr := analyzerRes.SingleRef()
+			if refErr == nil && ref != nil {
+				if infoBytes, err := ref.ReadFile(ctx, client.ReadRequest{
+					Filename: "railpack-info.json",
+				}); err == nil {
+					buildInfoString = string(infoBytes)
+				}
 
-		buildPlan, _ := ref.ReadFile(ctx, client.ReadRequest{
-			Filename: "railpack-plan.json",
-		})
-		buildPlanString := string(buildPlan)
+				if planBytes, err := ref.ReadFile(ctx, client.ReadRequest{
+					Filename: "railpack-plan.json",
+				}); err == nil {
+					buildPlanString = string(planBytes)
+				}
+			}
+		}
 
-		reportClient.ReportAsync(&api.ReportRequest{
-			BuildId:             reportBuildId,
-			SerializedBuildInfo: buildInfoString,
-			SerializedPlan:      buildPlanString,
-		})
+		// Send report even if plan is empty (analyzer may have failed to generate a plan)
+		if buildInfoString != "" {
+			reportClient.ReportAsync(&api.ReportRequest{
+				BuildId:             reportBuildId,
+				SerializedBuildInfo: buildInfoString,
+				SerializedPlan:      buildPlanString,
+			})
+		}
+	}
+
+	// If the analyzer itself failed, return that error
+	if analyzerErr != nil {
+		reportClient.WaitForAllAsyncReports()
+		return nil, fmt.Errorf("analyzer failed: %w", analyzerErr)
 	}
 
 	res, err := c.Solve(ctx, client.SolveRequest{
