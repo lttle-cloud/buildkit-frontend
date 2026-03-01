@@ -243,5 +243,9 @@ func Build(ctx context.Context, c client.Client) (*client.Result, error) {
 
 	reportClient.WaitForAllAsyncReports()
 
+	if err != nil && strings.Contains(err.Error(), "railpack-plan.json") {
+		return nil, fmt.Errorf("failed to automatically detect build configuration")
+	}
+
 	return res, err
 }

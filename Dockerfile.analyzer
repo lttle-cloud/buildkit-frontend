@@ -11,4 +11,8 @@ RUN chmod +x /usr/bin/analyzer
 
 FROM alpine
 
+RUN apk add --no-cache bash ca-certificates git
+
+ENV MISE_VERBOSE=1
+
 COPY --from=builder /usr/bin/analyzer /usr/bin/analyzer
